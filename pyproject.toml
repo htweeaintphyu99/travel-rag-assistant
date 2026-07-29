@@ -1,0 +1,15 @@
+[project]
+name = "travel-planning-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dotenv>=0.9.9",
+    "elasticsearch>=9.4.1",
+    "google-genai>=2.14.0",
+    "requests>=2.34.2",
+    "sentence-transformers>=5.6.1",
+    "sparqlwrapper>=2.0.0",
+    "tqdm>=4.69.1",
+]
