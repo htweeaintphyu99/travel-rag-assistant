@@ -36,8 +36,8 @@ class SearchEngine:
 
         if field_boosts is None:
             field_boosts = {
-                "page_title": 3.0,
-                "section": 2.0,
+                "page_title": 1.0,
+                "section": 1.0,
                 "text": 1.0,
             }
 
@@ -93,10 +93,6 @@ class SearchEngine:
         vector_results = self.vector_search(query)
         return rrf([text_results, vector_results], k=rrf_k, num_results=num_results)
 
-        # return self._merge_results(
-        #     text_results, vector_results, text_weight, vector_weight, size
-        # )
-
     def _merge_results(
         self, text_results, vector_results, text_weight, vector_weight, size
     ):
@@ -139,7 +135,7 @@ class SearchEngine:
                     "score": hit.get("_score"),
                     "text": source.get("text"),
                     "city": source.get("city"),
-                    "title": source.get("title"),
+                    "section": source.get("section"),
                 }
             )
 

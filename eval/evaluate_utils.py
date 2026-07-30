@@ -1,4 +1,15 @@
+import json
 import tqdm 
+
+def load_ground_truth(gt_json: str = "eval/ground_truth.json") -> dict:
+    gt_dict = {}
+    with open(gt_json, "r", encoding="utf-8") as f:
+        ground_truth = json.load(f)
+
+    for record in ground_truth:
+        gt_dict[record["id"]] = record["questions"]
+
+    return gt_dict
 
 def compute_relevance(doc_id, q, search_function):
     results = search_function(query=q)

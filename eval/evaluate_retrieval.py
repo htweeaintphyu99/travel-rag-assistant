@@ -8,32 +8,13 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from sentence_transformers import SentenceTransformer
 from search_engine import SearchEngine
-from evaluate_utils import (
-    compute_relevance,
-    compute_relevance_total,
-    evaluate,
-    hit_rate,
-    mrr,
-)
+from evaluate_utils import *
 
 RRF_K_VALUES = [1, 50, 100, 200]
 
-
-def load_ground_truth(gt_json: str = "eval/ground_truth.json") -> dict:
-    gt_dict = {}
-    # Load ground truth data from a JSON file
-    with open(gt_json, "r", encoding="utf-8") as f:
-        ground_truth = json.load(f)
-
-    for record in ground_truth:
-        gt_dict[record["id"]] = record["questions"]
-
-    return gt_dict
-
-
 def evaluate_rrf_k_values(ground_truth, search_engine, k_values=RRF_K_VALUES):
     for k in k_values:
-        search_function = lambda query, num_results=5, k=k: search_engine.hybrid_search(
+        search_function = lambda query, num_results=5, k=k: search_engine.hybrid_search_eval(
             query,
             num_results=num_results,
             rrf_k=k,

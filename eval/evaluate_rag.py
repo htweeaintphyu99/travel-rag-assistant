@@ -1,6 +1,15 @@
 import json
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 import pandas as pd
 from tqdm.auto import tqdm
+from evaluate_utils import load_ground_truth
+from travel_assistant.rag_pipeline import llm, rag, initialize
 
 prompt_template = """
 You are an expert evaluator for a RAG system.
@@ -22,54 +31,65 @@ and provide your evaluation in parsable JSON without using code blocks:
 }}
 """.strip()
 
-df_sample = df_question.sample(n=30, random_state=1)
-sample = df_sample.to_dict(orient="records")
 
-evaluations = []
+def evaluate_rag(model: str):
+  gt_dict = load_ground_truth()
+  evaluations = []
 
-for record in tqdm(sample):
-    question = record["question"]
-    answer_llm = rag(question)
+  save_every = 10
 
-    prompt = prompt2_template.format(
-        question=question,
-        answer_llm=answer_llm
+  count = 0
+
+  for doc_id, questions in gt_dict.items():
+      for question in questions:
+          answer_data = rag(question, model)
+
+          prompt = prompt_template.format(
+              question=question,
+              answer_llm=answer_data["answer"],
+          )
+
+          try:
+              evaluation, token_stat = llm(prompt, model)
+              evaluation = json.loads(evaluation)
+
+              record = {
+                  "id": doc_id,
+                  "question": question,
+              }
+
+              evaluations.append((record, answer_data, evaluation))
+
+          except Exception as e:
+              print(f"Error: {e}")
+
+          count += 1
+
+          if count % save_every == 0:
+              save_results(evaluations, model)
+
+              print(f"Saved {count} evaluations.")
+
+
+def save_results(evaluations, model):
+    df = pd.DataFrame(
+        evaluations,
+        columns=["record", "answer", "evaluation"],
     )
 
-    evaluation = llm(prompt)
-    evaluation = json.loads(evaluation)
+    df["id"] = df.record.apply(lambda d: d["id"])
+    df["question"] = df.record.apply(lambda d: d["question"])
+    df["relevance"] = df.evaluation.apply(lambda d: d["Relevance"])
+    df["explanation"] = df.evaluation.apply(lambda d: d["Explanation"])
 
-    evaluations.append((record, answer_llm, evaluation))
+    df.to_csv(f"data/rag-eval-{model}.csv", index=False)
 
-df_eval = pd.DataFrame(evaluations, columns=["record", "answer", "evaluation"])
 
-df_eval["id"] = df_eval.record.apply(lambda d: d["id"])
-df_eval["question"] = df_eval.record.apply(lambda d: d["question"])
-df_eval["relevance"] = df_eval.evaluation.apply(lambda d: d["Relevance"])
-df_eval["explanation"] = df_eval.evaluation.apply(lambda d: d["Explanation"])
+def main():
+    initialize()
+    # evaluate with gemini-3.1-flash-lite model
+    evaluate_rag(model="gemini-3.1-flash-lite")
 
-df_eval.relevance.value_counts(normalize=True)
 
-df_eval.to_csv("data/rag-eval-gpt-5.4-mini.csv", index=False)
-
-evaluations_gpt4o = []
-
-for record in tqdm(sample):
-    question = record["question"]
-    answer_llm = rag(question, model="gpt-4o")
-
-    prompt = prompt2_template.format(
-        question=question,
-        answer_llm=answer_llm
-    )
-
-    evaluation = llm(prompt)
-    evaluation = json.loads(evaluation)
-
-    evaluations_gpt4o.append((record, answer_llm, evaluation))
-
-df_eval = pd.DataFrame(evaluations_gpt4o, columns=["record", "answer", "evaluation"])
-df_eval["relevance"] = df_eval.evaluation.apply(lambda d: d["Relevance"])
-df_eval.relevance.value_counts(normalize=True)
-
-df_eval.to_csv("data/rag-eval-gpt-4o.csv", index=False)
+if __name__ == "__main__":
+    main()
