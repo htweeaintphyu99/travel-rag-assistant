@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -37,7 +38,6 @@ def evaluate_rag(model: str):
   evaluations = []
 
   save_every = 10
-
   count = 0
 
   for doc_id, questions in gt_dict.items():
@@ -71,7 +71,7 @@ def evaluate_rag(model: str):
               print(f"Saved {count} evaluations.")
 
 
-def save_results(evaluations, model):
+def save_results(evaluations, model, output_path="eval/results"):
     df = pd.DataFrame(
         evaluations,
         columns=["record", "answer", "evaluation"],
@@ -82,13 +82,17 @@ def save_results(evaluations, model):
     df["relevance"] = df.evaluation.apply(lambda d: d["Relevance"])
     df["explanation"] = df.evaluation.apply(lambda d: d["Explanation"])
 
-    df.to_csv(f"data/rag-eval-{model}.csv", index=False)
+    os.makedirs(output_path, exist_ok=True)
+    df.to_csv(f"{output_path}/rag-eval-{model}.csv", index=False)
 
 
 def main():
     initialize()
-    # evaluate with gemini-3.1-flash-lite model
+    # evaluate RAG using gemini-3.1-flash-lite model
     evaluate_rag(model="gemini-3.1-flash-lite")
+
+    # evaluate RAG using gemini-3.5-flash
+    evaluate_rag(model="gemini-3.5-flash")
 
 
 if __name__ == "__main__":

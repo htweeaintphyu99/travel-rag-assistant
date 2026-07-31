@@ -1,6 +1,6 @@
 # RAG Retrieval Evaluation
 
-This evaluation measures how well the retrieval component of the travel-planning RAG flow returns the document chunk that is relevant to a traveller's question. It compares two retrieval strategies against the same ground-truth dataset:
+This evaluation measures how well the retrieval component of the travel-planning RAG flow returns the document chunk that is relevant to a user's question. It compares two retrieval strategies against the same ground-truth dataset:
 
 - **Text search**: Elasticsearch BM25 multi-match search over `page_title`, `section`, and `text`.
 - **Vector search**: k-nearest-neighbour search over the `embedding` field using `sentence-transformers/all-MiniLM-L6-v2`.
@@ -90,5 +90,5 @@ RRF combines the ranked result lists from BM25 text search and vector search. Ea
 
 # RAG Final Evaluation Result
 Although **vector search** outperformed **BM25 text search**, **hybrid retrieval using Reciprocal Rank Fusion (RRF)** achieved the best retrieval performance.   
-Therefore, the final RAG system uses hybrid search with RRF (rrf_k=50) during inference, as it combines the strengths of keyword and semantic retrieval while achieving the highest MRR@5 on the evaluation dataset.
+Therefore, the final RAG system uses **hybrid search with RRF (rrf_k=50)** during inference, as it combines the strengths of keyword and semantic retrieval.
 
