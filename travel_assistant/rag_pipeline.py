@@ -1,3 +1,5 @@
+from dataclasses import dataclass, field
+from datetime import datetime
 import json
 from pathlib import Path
 from time import time
@@ -18,7 +20,7 @@ from dotenv import load_dotenv
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-prompt_template = """
+EVAL_PROMPT_TEMPLATE = """
 You're a travel assistant. Answer the QUESTION based on the CONTEXT from our travel chunks database.
 Use only the facts from the CONTEXT when answering the QUESTION.
 
@@ -27,6 +29,27 @@ QUESTION: {question}
 CONTEXT:
 {context}
 """.strip()
+
+NATURAL_PROMPT_TEMPLATE ="""
+You are a friendly and knowledgeable travel assistant.
+Answer the user's QUESTION using the provided CONTEXT.
+The CONTEXT contains factual information retrieved from a travel knowledge base.
+
+Instructions:
+- Give a direct answer first.
+- Write naturally, as if you were talking to a traveler who is curious about the country they plan to visit.
+- Combine information from multiple context passages when needed.
+- Do not copy sentences from the context verbatim.
+- Include only information supported by the context.
+- If the context does not contain enough information, say so instead of making up facts.
+- Use bullet points only when they improve readability.
+
+QUESTION:
+{question}
+
+CONTEXT:
+{context}
+"""
 
 evaluation_prompt_template = """
 You are an expert evaluator for a RAG system.
@@ -70,18 +93,18 @@ def initialize():
     )
 
 
-def search(query, rrf_k=50):
+def search(engine, query, rrf_k=50):
     results = engine.hybrid_search(query=query, num_results=5, rrf_k=rrf_k)
     return results
 
 
-def build_prompt(query, search_results):
+def build_prompt(prompt, query, search_results):
     context = ""
 
     for doc in search_results:
         context = context + entry_template.format(**doc) + "\n\n"
 
-    prompt = prompt_template.format(question=query, context=context).strip()
+    prompt = prompt.format(question=query, context=context).strip()
     return prompt
 
 
@@ -142,11 +165,11 @@ def calculate_gemini_cost(model, tokens):
     return gemini_cost
 
 
-def rag(query, model="gemini-3.5-flash"):
+def rag(search_engine, prompt, query, model="gemini-3.5-flash"):
     t0 = time()
 
-    search_results = search(query)
-    prompt = build_prompt(query, search_results)
+    search_results = search(search_engine, query)
+    prompt = build_prompt(prompt, query, search_results)
     answer, token_stats = llm(prompt, model=model)
 
     relevance, rel_token_stats = evaluate_relevance(query, answer)
@@ -177,3 +200,29 @@ def rag(query, model="gemini-3.5-flash"):
     }
 
     return answer_data
+
+@dataclass
+class LLMCallRecord:
+    model: str
+    prompt: str
+    instructions: str
+    answer: str
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+    response_time: float
+    cost: float
+    timestamp: datetime = field(default_factory=datetime.now)
+
+def to_log_record(answer_dict, prompt, instructions):
+    return LLMCallRecord(
+        model=answer_dict["model_used"],
+        prompt=prompt,
+        instructions=instructions,
+        answer=answer_dict["answer"],
+        prompt_tokens=answer_dict["prompt_tokens"],
+        completion_tokens=answer_dict["completion_tokens"],
+        total_tokens=answer_dict["total_tokens"],
+        response_time=answer_dict["response_time"],
+        cost=answer_dict["gemini_cost"],
+    )

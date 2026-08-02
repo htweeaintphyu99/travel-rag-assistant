@@ -10,7 +10,8 @@ if str(PROJECT_ROOT) not in sys.path:
 import pandas as pd
 from tqdm.auto import tqdm
 from evaluate_utils import load_ground_truth
-from travel_assistant.rag_pipeline import llm, rag, initialize
+from travel_assistant.rag_pipeline import llm, rag, initialize, EVAL_PROMPT_TEMPLATE
+from search_engine import SearchEngine
 
 prompt_template = """
 You are an expert evaluator for a RAG system.
@@ -32,6 +33,10 @@ and provide your evaluation in parsable JSON without using code blocks:
 }}
 """.strip()
 
+search_engine = SearchEngine(
+        host="http://localhost:9200",
+        index_name="travel-chunks",
+    )
 
 def evaluate_rag(model: str):
   gt_dict = load_ground_truth()
@@ -42,7 +47,7 @@ def evaluate_rag(model: str):
 
   for doc_id, questions in gt_dict.items():
       for question in questions:
-          answer_data = rag(question, model)
+          answer_data = rag(search_engine, EVAL_PROMPT_TEMPLATE, question, model)
 
           prompt = prompt_template.format(
               question=question,

@@ -8,9 +8,13 @@ dependencies = [
     "dotenv>=0.9.9",
     "elasticsearch>=8,<9",
     "google-genai>=2.14.0",
+    "mwparserfromhell>=0.7.2",
     "pandas>=3.0.5",
+    "psycopg[binary]>=3.3.4",
+    "python-dotenv>=1.2.2",
     "requests>=2.34.2",
     "sentence-transformers>=5.6.1",
     "sparqlwrapper>=2.0.0",
+    "streamlit>=1.60.0",
     "tqdm>=4.69.1",
 ]
