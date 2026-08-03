@@ -209,4 +209,18 @@ The dashboard contains five charts that update as more conversations are process
 
 ![Grafana Dashboard](images/Grafana.png)
 
+## Limitations
 
+Although the Travel Assistant provides context-aware travel answers using RAG, it has several limitations:
+
+- **Knowledge Coverage:** The system can only answer based on information available in the knowledge base collected from Wikipedia and Wikivoyage. It may not know recent changes that are not included in these sources.
+
+- **Real-Time Information:** The system does not provide real-time updates for information such as opening hours, prices, transportation schedules, or travel restrictions.
+
+- **Answer Accuracy:** Generated answers depend on the quality of retrieved documents and Gemini's response generation. Incorrect or incomplete retrieved information may lead to less accurate answers.
+
+- **Evaluation Dataset Size:** The evaluation uses a limited ground-truth dataset generated from selected knowledge chunks, so it may not represent all possible travel questions.
+
+- **Language Support:** The current system is primarily designed for English travel queries and may not perform equally well for other languages.
+
+- **Cost and Latency:** Each answer requires search and Gemini generation, which introduces response latency and API usage costs.
