@@ -17,9 +17,9 @@ import random
 import argparse
 from google import genai
 from google.genai import types
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
-load_dotenv()
+load_dotenv(find_dotenv())
 
 
 class GroundTruthGenerator:
@@ -32,7 +32,6 @@ class GroundTruthGenerator:
     def generate_questions(self, text: str, num_questions: int = 3) -> list[str]:
 
         prompt = f"""
-
 You are creating evaluation questions for a Retrieval Augmented Generation (RAG) based travel assistant.
 
 Your goal is to simulate realistic questions asked by travellers when planning a trip.
@@ -115,7 +114,6 @@ def save_json(data, path):
 
 
 def main():
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", default="chunks.json")
     parser.add_argument("--output", default="ground_truth.json")

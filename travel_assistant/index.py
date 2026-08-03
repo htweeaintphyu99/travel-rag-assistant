@@ -10,7 +10,7 @@ This lets you later compare BM25-only vs. vector-only vs. hybrid retrieval
 for your evaluation step.
 
 Setup:
-    pip install elasticsearch sentence-transformers tqdm
+    uv add install elasticsearch sentence-transformers tqdm
 
     Run Elasticsearch locally, e.g. via Docker:
         docker run -p 9200:9200 -e "discovery.type=single-node" \\
@@ -24,13 +24,16 @@ Usage:
 
 import argparse
 import json
+import os
 from pathlib import Path
-
+from tqdm import tqdm
 from elasticsearch import Elasticsearch, helpers
 from sentence_transformers import SentenceTransformer
-from tqdm import tqdm
+from dotenv import load_dotenv, find_dotenv
 
-DEFAULT_ES_URL = "http://localhost:9200"
+load_dotenv(find_dotenv())
+
+DEFAULT_ES_URL = os.getenv("ES_URL", "http://elasticsearch:9200")
 DEFAULT_INDEX = "travel-chunks"
 DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 EMBEDDING_DIM = 384  # matches all-MiniLM-L6-v2's output size
@@ -76,16 +79,21 @@ def create_index(es: Elasticsearch, index_name: str, recreate: bool) -> None:
         print(f"Creating index: {index_name}")
         es.indices.create(index=index_name, body=build_index_mapping())
     else:
-        print(f"Index already exists, reusing: {index_name} (use --recreate to rebuild)")
+        print(
+            f"Index already exists, reusing: {index_name} (use --recreate to rebuild)"
+        )
 
 
 def embed_chunks(chunks: list[dict], model: SentenceTransformer) -> list[list[float]]:
-    texts = [f"""
-        Title: {c.get('page_title', '')}
-        Section: {c.get('section', '')}
+    texts = [
+        f"""
+        Title: {c.get("page_title", "")}
+        Section: {c.get("section", "")}
         Content:
-        {c['text']}
-        """ for c in chunks]
+        {c["text"]}
+        """
+        for c in chunks
+    ]
     embeddings = model.encode(texts, show_progress_bar=True, convert_to_numpy=True)
     return embeddings.tolist()
 
@@ -107,7 +115,13 @@ def build_actions(chunks: list[dict], embeddings: list[list[float]], index_name:
         }
 
 
-def run(chunks_path: Path, es_url: str, index_name: str, embedding_model: str, recreate: bool) -> None:
+def run(
+    chunks_path: Path,
+    es_url: str,
+    index_name: str,
+    embedding_model: str,
+    recreate: bool,
+) -> None:
     chunks = load_chunks(chunks_path)
     print(f"Loaded {len(chunks)} chunks from {chunks_path}")
 
@@ -141,10 +155,17 @@ def run(chunks_path: Path, es_url: str, index_name: str, embedding_model: str, r
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Index chunks.json into Elasticsearch (hybrid: BM25 + kNN).")
-    parser.add_argument("--chunks", default="data/chunks.json", help="Path to chunks.json from ingest.py.")
-    parser.add_argument("--es-url", default=DEFAULT_ES_URL, help="Elasticsearch URL.")
-    parser.add_argument("--index", default=DEFAULT_INDEX, help="Elasticsearch index name.")
+    parser = argparse.ArgumentParser(
+        description="Index chunks.json into Elasticsearch (hybrid: BM25 + kNN)."
+    )
+    parser.add_argument(
+        "--chunks",
+        default="data/chunks.json",
+        help="Path to chunks.json from ingest.py.",
+    )
+    parser.add_argument(
+        "--index", default=DEFAULT_INDEX, help="Elasticsearch index name."
+    )
     parser.add_argument(
         "--embedding-model",
         default=DEFAULT_EMBEDDING_MODEL,
@@ -156,7 +177,7 @@ def main():
         help="Delete and rebuild the index if it already exists.",
     )
     args = parser.parse_args()
-    run(Path(args.chunks), args.es_url, args.index, args.embedding_model, args.recreate)
+    run(Path(args.chunks), DEFAULT_ES_URL, args.index, args.embedding_model, args.recreate)
 
 
 if __name__ == "__main__":

@@ -30,7 +30,7 @@ CONTEXT:
 {context}
 """.strip()
 
-NATURAL_PROMPT_TEMPLATE ="""
+NATURAL_PROMPT_TEMPLATE = """
 You are a friendly and knowledgeable travel assistant.
 Answer the user's QUESTION using the provided CONTEXT.
 The CONTEXT contains factual information retrieved from a travel knowledge base.
@@ -77,18 +77,17 @@ city: {city}
 content: {text}
 """.strip()
 
-
 def initialize():
-
+    index_script = Path(__file__).resolve().with_name("index.py") 
     subprocess.run(
-        [sys.executable, "index.py", "--recreate"],
+        [sys.executable, str(index_script), "--recreate"],
         check=True,
     )
 
     global engine
 
     engine = SearchEngine(
-        host="http://localhost:9200",
+        host=os.getenv("ES_URL", "http://elasticsearch:9200"),
         index_name="travel-chunks",
     )
 
@@ -152,8 +151,8 @@ def calculate_gemini_cost(model, tokens):
         ) / 1_000_000
 
     elif model == "gemini-3.1-flash-lite":
-        input_price = 0.25  
-        output_price = 1.5 
+        input_price = 0.25
+        output_price = 1.5
 
         gemini_cost = (
             tokens["prompt_tokens"] * input_price
@@ -201,6 +200,7 @@ def rag(search_engine, prompt, query, model="gemini-3.5-flash"):
 
     return answer_data
 
+
 @dataclass
 class LLMCallRecord:
     model: str
@@ -213,6 +213,7 @@ class LLMCallRecord:
     response_time: float
     cost: float
     timestamp: datetime = field(default_factory=datetime.now)
+
 
 def to_log_record(answer_dict, prompt, instructions):
     return LLMCallRecord(

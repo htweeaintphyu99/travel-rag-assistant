@@ -34,46 +34,47 @@ and provide your evaluation in parsable JSON without using code blocks:
 """.strip()
 
 search_engine = SearchEngine(
-        host="http://localhost:9200",
-        index_name="travel-chunks",
-    )
+    host=os.getenv("ES_URL", "http://elasticsearch:9200"),
+    index_name="travel-chunks",
+)
+
 
 def evaluate_rag(model: str):
-  gt_dict = load_ground_truth()
-  evaluations = []
+    gt_dict = load_ground_truth()
+    evaluations = []
 
-  save_every = 10
-  count = 0
+    save_every = 10
+    count = 0
 
-  for doc_id, questions in gt_dict.items():
-      for question in questions:
-          answer_data = rag(search_engine, EVAL_PROMPT_TEMPLATE, question, model)
+    for doc_id, questions in gt_dict.items():
+        for question in questions:
+            answer_data = rag(search_engine, EVAL_PROMPT_TEMPLATE, question, model)
 
-          prompt = prompt_template.format(
-              question=question,
-              answer_llm=answer_data["answer"],
-          )
+            prompt = prompt_template.format(
+                question=question,
+                answer_llm=answer_data["answer"],
+            )
 
-          try:
-              evaluation, token_stat = llm(prompt, model)
-              evaluation = json.loads(evaluation)
+            try:
+                evaluation, token_stat = llm(prompt, model)
+                evaluation = json.loads(evaluation)
 
-              record = {
-                  "id": doc_id,
-                  "question": question,
-              }
+                record = {
+                    "id": doc_id,
+                    "question": question,
+                }
 
-              evaluations.append((record, answer_data, evaluation))
+                evaluations.append((record, answer_data, evaluation))
 
-          except Exception as e:
-              print(f"Error: {e}")
+            except Exception as e:
+                print(f"Error: {e}")
 
-          count += 1
+            count += 1
 
-          if count % save_every == 0:
-              save_results(evaluations, model)
+            if count % save_every == 0:
+                save_results(evaluations, model)
 
-              print(f"Saved {count} evaluations.")
+                print(f"Saved {count} evaluations.")
 
 
 def save_results(evaluations, model, output_path="eval/results"):
@@ -93,10 +94,10 @@ def save_results(evaluations, model, output_path="eval/results"):
 
 def main():
     initialize()
-    # evaluate RAG using gemini-3.1-flash-lite model
+    # Evaluate RAG using gemini-3.1-flash-lite model
     evaluate_rag(model="gemini-3.1-flash-lite")
 
-    # evaluate RAG using gemini-3.5-flash
+    # Evaluate RAG using gemini-3.5-flash model
     evaluate_rag(model="gemini-3.5-flash")
 
 
