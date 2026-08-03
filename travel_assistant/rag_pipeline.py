@@ -12,7 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 import os
-from search_engine import SearchEngine
+from .search_engine import SearchEngine
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv

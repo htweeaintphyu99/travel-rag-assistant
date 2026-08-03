@@ -1,4 +1,3 @@
-import json
 import sys
 from pathlib import Path
 
@@ -7,17 +6,20 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from sentence_transformers import SentenceTransformer
-from search_engine import SearchEngine
+from travel_assistant.search_engine import SearchEngine
 from evaluate_utils import *
 
 RRF_K_VALUES = [1, 50, 100, 200]
 
+
 def evaluate_rrf_k_values(ground_truth, search_engine, k_values=RRF_K_VALUES):
     for k in k_values:
-        search_function = lambda query, num_results=5, k=k: search_engine.hybrid_search_eval(
-            query,
-            num_results=num_results,
-            rrf_k=k,
+        search_function = lambda query, num_results=5, k=k: (
+            search_engine.hybrid_search_eval(
+                query,
+                num_results=num_results,
+                rrf_k=k,
+            )
         )
         metrics = evaluate(ground_truth, search_function)
         print(f"k={k}, MRR={metrics['mrr']}")

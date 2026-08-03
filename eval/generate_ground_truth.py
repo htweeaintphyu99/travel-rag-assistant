@@ -12,18 +12,10 @@ Pipeline:
 """
 
 import json
-
 import os
 import random
-
 import argparse
-
-from pathlib import Path
-
-from typing import List, Dict
-
 from google import genai
-
 from google.genai import types
 from dotenv import load_dotenv
 
@@ -37,7 +29,7 @@ class GroundTruthGenerator:
 
         self.model = model
 
-    def generate_questions(self, text: str, num_questions: int = 3) -> List[str]:
+    def generate_questions(self, text: str, num_questions: int = 3) -> list[str]:
 
         prompt = f"""
 
@@ -89,7 +81,7 @@ Travel document:
             print(f"Gemini JSON error ")
             print(e)
 
-    def generate_dataset(self, chunks: List[Dict], sample_size: int = 50) -> List[Dict]:
+    def generate_dataset(self, chunks: list[dict], sample_size: int = 50) -> list[dict]:
         samples = random.sample(chunks, sample_size)
         dataset = []
         for idx, chunk in enumerate(samples):
@@ -113,13 +105,11 @@ Travel document:
 
 
 def load_json(path: str):
-
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def save_json(data, path):
-
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
@@ -127,23 +117,16 @@ def save_json(data, path):
 def main():
 
     parser = argparse.ArgumentParser()
-
     parser.add_argument("--input", default="chunks.json")
-
     parser.add_argument("--output", default="ground_truth.json")
-
     parser.add_argument("--samples", type=int, default=30)
-
     args = parser.parse_args()
 
     chunks = load_json(args.input)
-
     generator = GroundTruthGenerator(api_key=os.getenv("GEMINI_API_KEY"))
-
     dataset = generator.generate_dataset(chunks, args.samples)
 
     save_json(dataset, args.output)
-
     print(f"Saved {len(dataset)} items to {args.output}")
 
 

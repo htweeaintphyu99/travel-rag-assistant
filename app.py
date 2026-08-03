@@ -18,9 +18,9 @@ from pathlib import Path
 
 import streamlit as st
 
-from ingest import ingest
-from index import DEFAULT_EMBEDDING_MODEL, DEFAULT_INDEX, run
-from search_engine import SearchEngine
+from travel_assistant.ingest import ingest
+from travel_assistant.index import DEFAULT_EMBEDDING_MODEL, DEFAULT_INDEX, run
+from travel_assistant.search_engine import SearchEngine
 from travel_assistant.rag_pipeline import NATURAL_PROMPT_TEMPLATE, rag, to_log_record, evaluate_relevance
 from db.db_init import *
 from db.db_save import save_conversation
@@ -33,7 +33,7 @@ CHUNK_PATH = "data/chunks.json"
 MAX_CHUNK_CHARS = 800
 OVERLAP_CHARS = 150
 MODEL = "gemini-3.5-flash"
-ESL_URL = os.getenv( "ES_URL", "http://localhost:9200")
+ES_URL = os.getenv( "ES_URL", "http://localhost:9200")
 
 st.set_page_config(
     page_title="Travel Assistant", page_icon="\U0001f9f3", layout="centered"
@@ -42,13 +42,13 @@ st.set_page_config(
 
 @st.cache_resource
 def get_search_engine() -> SearchEngine:
-    return SearchEngine(host=ESL_URL, index_name=DEFAULT_INDEX)
+    return SearchEngine(host=ES_URL, index_name=DEFAULT_INDEX)
 
 
 @st.cache_resource
 def init_db_and_feedback() -> None:
-    init_db()
-    init_feedback()
+    init_db(drop=True)
+    init_feedback(drop=True)
     print("Database initialized")
 
 
@@ -72,7 +72,7 @@ def build_knowledge_base(
     )
     run(
         Path(CHUNK_PATH),
-        ESL_URL,
+        ES_URL,
         DEFAULT_INDEX,
         DEFAULT_EMBEDDING_MODEL,
         recreate=True,

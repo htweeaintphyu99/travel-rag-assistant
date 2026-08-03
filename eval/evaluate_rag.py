@@ -11,7 +11,7 @@ import pandas as pd
 from tqdm.auto import tqdm
 from evaluate_utils import load_ground_truth
 from travel_assistant.rag_pipeline import llm, rag, initialize, EVAL_PROMPT_TEMPLATE
-from search_engine import SearchEngine
+from travel_assistant.search_engine import SearchEngine
 
 prompt_template = """
 You are an expert evaluator for a RAG system.

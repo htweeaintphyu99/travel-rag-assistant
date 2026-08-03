@@ -7,7 +7,7 @@ Supports:
 - Hybrid search
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from elasticsearch import Elasticsearch
 from sentence_transformers import SentenceTransformer
@@ -26,8 +26,8 @@ class SearchEngine:
         self,
         query: str,
         size: int = 5,
-        field_boosts: Dict[str, float] | None = None,
-    ) -> List[Dict[str, Any]]:
+        field_boosts: dict[str, float] | None = None,
+    ) -> list[dict[str, Any]]:
         """
 
         BM25 keyword search.
@@ -46,7 +46,6 @@ class SearchEngine:
             for field, boost in field_boosts.items()
         ]
         
-
         response = self.client.search(
             index=self.index_name,
             size=size,
@@ -62,7 +61,7 @@ class SearchEngine:
 
     def vector_search(
         self, query: str, k: int = 5, num_candidates: int = 100
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Semantic vector search using kNN.
         """
@@ -83,7 +82,7 @@ class SearchEngine:
 
     def hybrid_search(
         self, query: str, num_results=5, rrf_k=60
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Hybrid BM25 + Vector search.
 
