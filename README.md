@@ -12,7 +12,7 @@
 This project is a Retrieval-Augmented Generation (RAG) travel assistant that collects travel information from Wikipedia and Wikivoyage, builds a searchable knowledge base, and uses Google Gemini to answer travel-related questions.
 
 ## Problem Statement
-Travel information is spread across multiple sources, making it difficult to find accurate and relevant answers quickly. This project combines user questions, travel knowledge from Wikipedia and Wikivoyage, and RAG-based retrieval to provide context-aware travel assistance.
+Planning a trip often requires searching through scattered information from multiple sources. Travelers may struggle to find accurate and relevant details about destinations, transportation, attractions, and local experiences. This project combines user questions, travel knowledge from Wikipedia and Wikivoyage, and RAG-based retrieval to provide context-aware travel assistance.
 
 ## System Overview
 - **Knowledge Base Creation**: Ingests travel information from live APIs, processes documents into chunks, and indexes them in Elasticsearch.
