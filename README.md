@@ -75,7 +75,7 @@ flowchart TD
 
 ## Project Structure
 ```text
-travel-assistant/
+travel-rag-assistant/
 ├── data/                         # Knowledge base chunks and generated datasets
 ├── db/                           # PostgreSQL database operations
 │   ├── db_init.py                # Database initialization
@@ -110,7 +110,7 @@ travel-assistant/
 1. Clone the project:
 ```bash
 git clone <repo-url>
-cd travel-assistant
+cd travel-rag-assistant
 ```
 
 2. Create a Gemini API key and add it in [.env](.env).
